@@ -98,7 +98,8 @@ def filter(n_url) -> Union[URLType, bool]:
     return URLType.NORMAL, False
 
 def ntfy(private_url):
-    requests.post('https://ntfy.sh/sc_private_miner', data=f"new private url: {private_url}".encode('utf-8'))
+    requests.post('https://ntfy.sh/sc_private_miner_ntfy', data=f"new private url: {private_url}".encode('utf-8'))
+    print(f"notified to ntfy.sh!")
 
 def main():
     while True:

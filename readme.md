@@ -14,3 +14,7 @@ python3 steal.py
 ...Ctrl+C to terminate
 cat logs/<private_log_file>.txt
 ```
+
+## ntfy.sh notification
+
+subscribe https://ntfy.sh/sc_private_miner_ntfy to get all private links from all sc_private_miner users!!!
