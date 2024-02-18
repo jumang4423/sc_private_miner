@@ -94,9 +94,11 @@ def filter(n_url) -> Union[URLType, bool]:
         return URLType.PRIVATE, False   
     if is_small_playcount:
         return URLType.SMALL_PLAYCOUNT, False
-
     
     return URLType.NORMAL, False
+
+def ntfy(private_url):
+    requests.post('https://ntfy.sh/sc_private_miner', data=f"new private url: {private_url}".encode('utf-8'))
 
 def main():
     while True:
@@ -104,6 +106,9 @@ def main():
         url_type, err = filter(random_url)
         if not err:
             save_url(random_url, url_type)
+        if url_type == URLType.PRIVATE:
+            # if new private url, notify to the ntfy.sh
+            ntfy(random_url)
 
 if __name__ == '__main__':
     main()
