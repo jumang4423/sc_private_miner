@@ -13,7 +13,7 @@ SMALL_PLAYCOUNT_FILENAME = 'small_playcount.txt'
 SMALL_PLAYCOUNT_THRESHOLD = 50000
 NORMAL_URLS_FILENAME = 'normal_urls.txt'
 LOG_DIR = 'logs'
-CONCURRENT_TASKS = 6
+CONCURRENT_TASKS = 2
 
 # Create logs directory if it doesn't exist
 os.makedirs(LOG_DIR, exist_ok=True)
@@ -48,10 +48,6 @@ async def get_random_url(session):
         async with session.post('https://soundcloud.com/oembed', data={'format': 'json', 'url': url}) as response:
             if response.status == 200:
                 return url
-            else:
-                # possibly banned ip, so exit
-                print(f"possible ban, exiting")
-                exit(1)
 
 # Function to check if the producer is a tiny producer
 async def is_tiny_producer(html_content: str) -> bool:
