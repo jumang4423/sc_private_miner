@@ -13,7 +13,7 @@ SMALL_PLAYCOUNT_FILENAME = 'small_playcount.txt'
 SMALL_PLAYCOUNT_THRESHOLD = 50000
 NORMAL_URLS_FILENAME = 'normal_urls.txt'
 LOG_DIR = 'logs'
-CONCURRENT_TASKS = 10  # Number of tasks to run in parallel
+CONCURRENT_TASKS = 6
 
 # Create logs directory if it doesn't exist
 os.makedirs(LOG_DIR, exist_ok=True)
@@ -85,13 +85,10 @@ async def ntfy(session, private_url):
 
 
 async def main():
-    # Create a semaphore to limit concurrent tasks to 5
-    semaphore = asyncio.Semaphore(5)
+    semaphore = asyncio.Semaphore(CONCURRENT_TASKS)
 
     async with aiohttp.ClientSession() as session:
-        # Create an initial list of 5 tasks
         tasks = [asyncio.create_task(bounded_random_url(semaphore, session)) for _ in range(5)]
-        # Wait for all tasks to complete (which they never will, because they are in an infinite loop)
         await asyncio.gather(*tasks)
 
 async def bounded_random_url(semaphore, session):
