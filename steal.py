@@ -48,6 +48,10 @@ async def get_random_url(session):
         async with session.post('https://soundcloud.com/oembed', data={'format': 'json', 'url': url}) as response:
             if response.status == 200:
                 return url
+            else:
+                # possibly banned ip, so exit
+                print(f"possible ban, exiting")
+                exit(1)
 
 # Function to check if the producer is a tiny producer
 async def is_tiny_producer(html_content: str) -> bool:
