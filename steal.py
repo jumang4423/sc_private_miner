@@ -13,7 +13,7 @@ SMALL_PLAYCOUNT_FILENAME = 'small_playcount.txt'
 SMALL_PLAYCOUNT_THRESHOLD = 50000
 NORMAL_URLS_FILENAME = 'normal_urls.txt'
 LOG_DIR = 'logs'
-CONCURRENT_TASKS = 3
+CONCURRENT_TASKS = 1
 
 # Create logs directory if it doesn't exist
 os.makedirs(LOG_DIR, exist_ok=True)
@@ -106,4 +106,14 @@ async def bounded_random_url(semaphore, session):
                 await ntfy(session, random_url)  # Await the async ntfy function
 
 if __name__ == '__main__':
+    print("sc_private_miner v0.1")
+    print("- local mode: 0")
+    print("- server mode: 1")
+    print("choose: ", end="")
+    mode = int(input())
+    if mode == 0:
+        CONCURRENT_TASKS = 1
+    elif mode == 1:
+        CONCURRENT_TASKS = 10
+
     asyncio.run(main())
