@@ -10,7 +10,7 @@ import os
 # Constants and environment variables
 PRIVATE_URLS_FILENAME = 'private_urls.txt'
 SMALL_PLAYCOUNT_FILENAME = 'small_playcount.txt'
-SMALL_PLAYCOUNT_THRESHOLD = 50000
+SMALL_PLAYCOUNT_THRESHOLD = 30000
 NORMAL_URLS_FILENAME = 'normal_urls.txt'
 LOG_DIR = 'logs'
 CONCURRENT_TASKS = 1
@@ -91,7 +91,7 @@ async def main():
     semaphore = asyncio.Semaphore(CONCURRENT_TASKS)
 
     async with aiohttp.ClientSession() as session:
-        tasks = [asyncio.create_task(bounded_random_url(semaphore, session)) for _ in range(5)]
+        tasks = [asyncio.create_task(bounded_random_url(semaphore, session)) for _ in range(CONCURRENT_TASKS)]
         await asyncio.gather(*tasks)
 
 async def bounded_random_url(semaphore, session):
