@@ -13,8 +13,6 @@ SMALL_PLAYCOUNT_FILENAME = 'small_playcount.txt'
 SMALL_PLAYCOUNT_THRESHOLD = 30000
 NORMAL_URLS_FILENAME = 'normal_urls.txt'
 LOG_DIR = 'logs'
-CONCURRENT_TASKS = 1
-
 # Create logs directory if it doesn't exist
 os.makedirs(LOG_DIR, exist_ok=True)
 
@@ -23,6 +21,8 @@ class URLType:
     PRIVATE = "private"
     SMALL_PLAYCOUNT = "small_playcount"
     NORMAL = "normal"
+CONCURRENT_TASKS = 1
+IS_NTFT = False
 
 # Asynchronous function to save URL
 async def save_url(url: str, url_type: URLType):
@@ -102,18 +102,30 @@ async def bounded_random_url(semaphore, session):
             print(f"URL: {random_url}, Type: {url_type}")
             if not err:
                 await save_url(random_url, url_type)  # Await the async save_url function
-            if url_type == URLType.PRIVATE:
+            if url_type == URLType.PRIVATE and IS_NTFT:
                 await ntfy(session, random_url)  # Await the async ntfy function
+
+def set_concurrent_tasks():
+    global CONCURRENT_TASKS
+    print("server mode? (y/n): ")
+    mode = input()
+    if mode == "y":
+        CONCURRENT_TASKS = 10
+    elif mode == "n":
+        CONCURRENT_TASKS = 1
+    else:
+        print("invalid input")
+        set_concurrent_tasks()
+
+
+def set_is_ntfy():
+    enabled = input("enable ntfy? (y/n): ")
+    global IS_NTFT
+    IS_NTFT = enabled == 'y'
+
 
 if __name__ == '__main__':
     print("sc_private_miner v0.1")
-    print("- local mode: 0")
-    print("- server mode: 1")
-    print("choose: ", end="")
-    mode = int(input())
-    if mode == 0:
-        CONCURRENT_TASKS = 1
-    elif mode == 1:
-        CONCURRENT_TASKS = 10
-
+    set_concurrent_tasks()
+    set_is_ntfy()
     asyncio.run(main())
