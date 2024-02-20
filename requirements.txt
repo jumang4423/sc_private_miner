@@ -1,2 +1,4 @@
 aiohttp
 aiofiles
+youtube_dl
+requests
