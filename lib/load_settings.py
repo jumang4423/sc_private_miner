@@ -22,4 +22,4 @@ def print_settings(settings):
     print(f"PUBLIC_SMALL_PLAYCOUNT_THRESHOLD: {settings['PUBLIC_SMALL_PLAYCOUNT_THRESHOLD']}")
     print(f"PRIVATE_BIG_ARTIST_THRESHOLD: {settings['PRIVATE_BIG_ARTIST_THRESHOLD']}")
     print(f"CONCURRENT_TASKS: {settings['CONCURRENT_TASKS']}")
-    print(f"IS_NTFY: {settings['IS_NTFY']}")
+    print(f"DATA_SERVER_URL: {settings['DATA_SERVER_URL']}")

@@ -10,6 +10,7 @@ import asyncio
 import aiofiles
 import re
 import os
+import socket
 
 # vars
 SETTINGS = {}
@@ -58,13 +59,12 @@ async def get_random_url(session):
                 print("possibly banned, waiting 60 seconds")
                 await asyncio.sleep(60)
 
-# Function to check if the producer is a tiny producer
-async def is_tiny_producer(html_content: str) -> bool:
+
+async def get_playcount(html_content: str) -> int:
     match = re.search(r'"playback_count":(\d+)', html_content)
     if match:
-        this_playcount = int(match.group(1))
-        return this_playcount < SETTINGS['PUBLIC_SMALL_PLAYCOUNT_THRESHOLD']
-    return False
+        return int(match.group(1))
+    return -1
 
 # Function to check if the link is private
 async def is_private_producer(html_content: str) -> bool:
@@ -74,33 +74,58 @@ async def is_private_producer(html_content: str) -> bool:
         return sharing == 'private'
     return False
 
-async def is_big_artist(html_content: str) -> bool:
+
+async def artist_follower_count(html_content: str) -> int:
     match = re.search(r'"followers_count":(\d+)', html_content)
     if match:
-        followers_count = int(match.group(1))
-        return followers_count > SETTINGS['PRIVATE_BIG_ARTIST_THRESHOLD']
-    return False
+        return int(match.group(1))
+    return 0
+
+async def get_artist_name(html_content: str) -> str:
+    match = re.search(r'"username":"([^"]+)"', html_content)
+    if match:
+        return match.group(1)
+    return "unknown"
 
 # Asynchronous function to filter URL
-async def filter_url(session, n_url) -> Union[URLType, bool]:
+async def filter_url(session, n_url):
     async with session.get(n_url) as response:
         if response.status != 200:
-            return URLType.PUBLIC_BIG_PLAYCOUNT, True
+            return { 'url': URLType.PUBLIC_BIG_PLAYCOUNT }, True
         html_content = await response.text()
-        is_small_playcount = await is_tiny_producer(html_content)
+        playcount: int = await get_playcount(html_content)
+        is_small_playcount: bool = playcount < SETTINGS['PUBLIC_SMALL_PLAYCOUNT_THRESHOLD']
         is_private = await is_private_producer(html_content)
+        artist_follower_count_d = await artist_follower_count(html_content)
+        is_artist_big = artist_follower_count_d > SETTINGS['PRIVATE_BIG_ARTIST_THRESHOLD']
         if is_private:
-            if await is_big_artist(html_content):
-                return URLType.PRIVATE_BIG_ARTIST, False
-            return URLType.PRIVATE_SMALL_ARTIST, False
+            if is_artist_big:
+                artist_name = await get_artist_name(html_content)
+                return { 'url': URLType.PRIVATE_BIG_ARTIST, 'artist_name': artist_name, 'follower_count': artist_follower_count_d }, False
+            return { 'url': URLType.PRIVATE_SMALL_ARTIST }, False
         if is_small_playcount:
-            return URLType.PUBLIC_SMALL_PLAYCOUNT, False
-        return URLType.PUBLIC_BIG_PLAYCOUNT, False
+            return { 'url': URLType.PUBLIC_SMALL_PLAYCOUNT }, False
+        return { 'url': URLType.PUBLIC_BIG_PLAYCOUNT }, False
+
+def get_host_name():
+    return socket.gethostname()
 
 # Asynchronous function to notify
-async def ntfy(session, private_url):
-    await session.post('https://ntfy.sh/sc_private_miner_ntfy', data=f"new private url: {private_url}".encode('utf-8'))
-
+async def ntfy(
+        session, 
+        private_url,
+        follower_count,
+        artist_name
+    ):
+    database_url = SETTINGS['DATA_SERVER_URL']
+    data = {
+        'url': private_url,
+        'sender_name': get_host_name(),
+        'follower_count': follower_count,
+        'artist_name': artist_name
+    }
+    print(str(data))
+    await session.post(f"{database_url}/url", json=data)
 
 async def main():
     semaphore = asyncio.Semaphore(SETTINGS['CONCURRENT_TASKS'])
@@ -112,13 +137,16 @@ async def bounded_random_url(semaphore, session):
     while True:  # Keep running indefinitely
         async with semaphore:
             random_url = await get_random_url(session)
-            url_type, err = await filter_url(session, random_url)  # Make sure to use the correct function name
+            data_obj, err = await filter_url(session, random_url)  # Make sure to use the correct function name
+            url_type = data_obj['url']
             print(f"URL: {random_url}, Type: {url_type}")
             if not err:
                 await save_url(random_url, url_type)  # Await the async save_url function
-            if url_type == URLType.PRIVATE_SMALL_ARTIST or url_type == URLType.PRIVATE_BIG_ARTIST:
-                if SETTINGS['IS_NTFY']:
-                    await ntfy(session, random_url)  # Await the async ntfy function
+            if url_type == URLType.PRIVATE_BIG_ARTIST:
+                print(f"sending to server...")
+                follower_count = data_obj['follower_count']
+                artist_name = data_obj['artist_name']
+                await ntfy(session, random_url, follower_count, artist_name)
 
 
 if __name__ == '__main__':
