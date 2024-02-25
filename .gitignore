@@ -1,3 +1,4 @@
 logs/
 output/
 server/credentials.json
+.username

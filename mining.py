@@ -2,6 +2,7 @@
 # Sometimes, the program will be blocked by SoundCloud, so you need to change your IP address to continue mining
 from lib.load_settings import load_settings, print_settings
 from lib.get_log_dir import get_log_dir
+from lib.username import val_username
 import random
 import string
 import aiohttp
@@ -9,10 +10,10 @@ import asyncio
 import aiofiles
 import re
 import os
-import socket
 
 # vars
 SETTINGS = {}
+USERNAME = ""
 
 # Create logs directory if it doesn't exist
 os.makedirs(get_log_dir(), exist_ok=True)
@@ -62,8 +63,8 @@ async def get_random_url(session):
             if response.status == 200:
                 return url
             if response.status == 403:
-                print("possibly banned, waiting 60 seconds")
-                await asyncio.sleep(60)
+                print("possibly banned, waiting 120 seconds")
+                await asyncio.sleep(120)
 
 
 async def get_playcount(html_content: str) -> int:
@@ -125,16 +126,12 @@ async def filter_url(session, n_url):
         return {"url": URLType.PUBLIC_BIG_PLAYCOUNT}, False
 
 
-def get_host_name():
-    return socket.gethostname()
-
-
 # Asynchronous function to notify
 async def ntfy(session, private_url, follower_count, artist_name):
     database_url = SETTINGS["DATA_SERVER_URL"]
     data = {
         "url": private_url,
-        "sender_name": get_host_name(),
+        "sender_name": USERNAME,
         "follower_count": follower_count,
         "artist_name": artist_name,
     }
@@ -175,4 +172,6 @@ async def bounded_random_url(semaphore, session):
 if __name__ == "__main__":
     SETTINGS = load_settings()
     print_settings(SETTINGS)
+    USERNAME = val_username()
+
     asyncio.run(main())
