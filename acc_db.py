@@ -3,7 +3,7 @@ import requests
 
 # vars
 SETTINGS = {}
-PAGE_SIZE = 3
+PAGE_SIZE = 5
 
 
 def get_page(cur_page: int):
