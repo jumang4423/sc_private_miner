@@ -1,6 +1,7 @@
 {
   "CONCURRENT_TASKS": 1,
   "DATA_SERVER_URL": "https://sc-private-miner-kgt3lbt42a-an.a.run.app",
+  "REQUEST_TIME_SEC": 0,
   "PUBLIC_SMALL_PLAYCOUNT_THRESHOLD": 50000,
   "PRIVATE_BIG_ARTIST_THRESHOLD": 1000,
   "PRIVATE_SMALL_ARTIST_URLS_FILENAME": "mining_private_small_artist_urls.txt",
