@@ -11,8 +11,7 @@ SETTINGS = {}
 
 class Metadata:
     id: str
-    name: str
-    artist: str
+    url: str
     playcount: int
     followers: int
 
@@ -51,6 +50,7 @@ def load_metadata_from_url(url: str) -> Metadata:
     """
     metadata = Metadata()
     metadata.id = get_id_from_url(url)
+    metadata.url = url
     response = requests.get(url)
     resp_html = response.text
     # TODO: parse HTML to get metadata
