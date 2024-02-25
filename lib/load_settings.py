@@ -35,4 +35,3 @@ def print_settings(settings):
     print(f"PRIVATE_BIG_ARTIST_THRESHOLD: {settings['PRIVATE_BIG_ARTIST_THRESHOLD']}")
     print(f"CONCURRENT_TASKS: {settings['CONCURRENT_TASKS']}")
     print(f"DATA_SERVER_URL: {settings['DATA_SERVER_URL']}")
-    print(f"REQUEST_TIME_SEC: {settings['REQUEST_TIME_SEC']}")

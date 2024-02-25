@@ -65,11 +65,6 @@ async def get_random_url(session):
                 print("possibly banned, waiting 60 seconds")
                 await asyncio.sleep(60)
 
-        request_time_sec = SETTINGS["REQUEST_TIME_SEC"]
-        if request_time_sec > 0:
-            # sleep
-            await asyncio.sleep(request_time_sec)
-
 
 async def get_playcount(html_content: str) -> int:
     match = re.search(r'"playback_count":(\d+)', html_content)
