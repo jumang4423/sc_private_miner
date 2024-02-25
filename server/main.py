@@ -1,5 +1,5 @@
 import os
-
+import random
 from pydantic import BaseModel
 from datetime import datetime
 from flask import Flask, request, jsonify
@@ -20,6 +20,25 @@ class PrivateURLDTO(BaseModel):
 
 class PrivateURL(PrivateURLDTO):
     timestamp: datetime
+
+@app.route("/random_private_url", methods=["GET"])
+def get_random_private_url():
+    try:
+        urls_ref = db.collection("urls")
+        urls_stream = urls_ref.stream()
+        total_docs_count = sum(1 for _ in urls_stream)
+        if total_docs_count == 0:
+            return jsonify({"error": "No URLs found"}), 404
+        random_index = random.randint(0, total_docs_count - 1)
+        random_doc_ref = urls_ref.order_by('timestamp').offset(random_index).limit(1).stream()
+        random_doc = next(random_doc_ref, None)
+        if random_doc:
+            return jsonify(random_doc.to_dict()), 200
+        else:
+            return jsonify({"error": "Random URL not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
 
 @app.route("/urls", methods=["GET"])
 def get_urls():
