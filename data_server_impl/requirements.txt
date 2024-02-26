@@ -4,3 +4,4 @@ Werkzeug==3.0.1
 firebase_admin
 google-cloud-firestore
 pydantic
+flask_cors

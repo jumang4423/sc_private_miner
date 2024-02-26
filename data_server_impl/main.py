@@ -6,6 +6,7 @@ logging.basicConfig(level=logging.INFO)
 from pydantic import BaseModel
 from datetime import datetime
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from firebase_admin import credentials, firestore, initialize_app
 from typing import Optional
 # Initialize Firestore DB
@@ -14,6 +15,7 @@ cred = credentials.Certificate(CRED_PATH)
 initialize_app(cred)
 db = firestore.client()
 app = Flask(__name__)
+CORS(app)
 
 
 # DTO and Model
