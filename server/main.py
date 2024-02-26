@@ -5,7 +5,8 @@ from datetime import datetime
 from flask import Flask, request, jsonify
 from firebase_admin import credentials, firestore, initialize_app
 
-CRED_PATH = "./credentials.json"
+# Initialize Firestore DB
+CRED_PATH = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "./credentials.json")
 cred = credentials.Certificate(CRED_PATH)
 initialize_app(cred)
 db = firestore.client()
@@ -13,6 +14,7 @@ db = firestore.client()
 app = Flask(__name__)
 
 
+# DTO and Model
 class PrivateURLDTO(BaseModel):
     url: str
     sender_name: str
@@ -24,63 +26,90 @@ class PrivateURL(PrivateURLDTO):
     timestamp: datetime
 
 
+# Firestore Service
+class FirestoreService:
+    @staticmethod
+    def get_random_private_url():
+        try:
+            urls_ref = db.collection("urls")
+            urls_stream = urls_ref.stream()
+            total_docs_count = sum(1 for _ in urls_stream)
+            if total_docs_count == 0:
+                return jsonify({"error": "No URLs found"}), 404
+            random_index = random.randint(0, total_docs_count - 1)
+            random_doc_ref = (
+                urls_ref.order_by("timestamp").offset(random_index).limit(1).stream()
+            )
+            random_doc = next(random_doc_ref, None)
+            if random_doc:
+                return jsonify(random_doc.to_dict()), 200
+            else:
+                return jsonify({"error": "Random URL not found"}), 404
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    @staticmethod
+    def get_urls(page_size, cursor=None):
+        urls_ref = db.collection("urls").order_by(
+            "timestamp", direction=firestore.Query.DESCENDING
+        )
+        # Use cursor-based pagination
+        if cursor:
+            cursor_doc = db.collection("urls").document(cursor).get()
+            if cursor_doc.exists:
+                urls_ref = urls_ref.start_after(cursor_doc)
+
+        query = urls_ref.limit(
+            page_size + 1
+        )  # Fetch one extra document to determine if there is a next page
+        docs = list(query.stream())
+        urls = [doc.to_dict() for doc in docs[:page_size]]
+
+        next_cursor = None
+        if len(docs) > page_size:  # Check if we fetched an extra document
+            next_cursor = docs[page_size].id  # This is the cursor for the next page
+
+        return urls, next_cursor
+
+    @staticmethod
+    def add_url(url_data):
+        url_data["timestamp"] = datetime.now()
+        new_data = PrivateURL(**url_data)
+        db.collection("urls").add(new_data.dict())
+
+
+# Flask Routes
 @app.route("/random_private_url", methods=["GET"])
 def get_random_private_url():
-    try:
-        urls_ref = db.collection("urls")
-        urls_stream = urls_ref.stream()
-        total_docs_count = sum(1 for _ in urls_stream)
-        if total_docs_count == 0:
-            return jsonify({"error": "No URLs found"}), 404
-        random_index = random.randint(0, total_docs_count - 1)
-        random_doc_ref = (
-            urls_ref.order_by("timestamp").offset(random_index).limit(1).stream()
-        )
-        random_doc = next(random_doc_ref, None)
-        if random_doc:
-            return jsonify(random_doc.to_dict()), 200
-        else:
-            return jsonify({"error": "Random URL not found"}), 404
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return FirestoreService.get_random_private_url()
 
 
 @app.route("/urls", methods=["GET"])
 def get_urls():
-    page = int(request.args.get("page", 1))
-    page_size = int(request.args.get("page_size", 10))
+    try:
+        page_size = int(request.args.get("page_size", 10))
+        cursor = request.args.get("cursor", None)  # Get the cursor if provided
+        urls, next_cursor = FirestoreService.get_urls(page_size, cursor)
 
-    urls_ref = db.collection("urls").order_by(
-        "timestamp", direction=firestore.Query.DESCENDING
-    )
+        response = {"urls": urls}
+        if next_cursor:
+            response["next_cursor"] = next_cursor
 
-    skip = (page - 1) * page_size
-
-    if skip:
-        last_doc_of_previous_page = urls_ref.limit(skip).stream()
-        last_docs = list(last_doc_of_previous_page)
-        if last_docs:
-            last_doc = last_docs[-1]
-            urls_ref = urls_ref.start_after(last_doc)
-
-    urls = [url.to_dict() for url in urls_ref.limit(page_size).stream()]
-
-    if not urls:
-        return jsonify({"urls": []}), 404
-
-    return jsonify({"urls": urls})
+        return jsonify(response), 200
+    except ValueError as e:
+        return jsonify({"message": "Invalid page size"}), 400
+    except Exception as e:
+        return jsonify({"message": "An error occurred"}), 500
 
 
 @app.route("/url", methods=["POST"])
-# add url to urls collection
 def add_url():
-    data = request.json
-    url = PrivateURLDTO(**data).dict()
-    url["timestamp"] = datetime.now()
-    # validate url
-    new_data = PrivateURL(**url)
-    db.collection("urls").add(new_data.dict())
-    return {"message": "URL added successfully"}
+    try:
+        data = request.json
+        FirestoreService.add_url(data)
+        return {"message": "URL added successfully"}, 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 
 if __name__ == "__main__":
