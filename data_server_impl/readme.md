@@ -13,5 +13,5 @@ URL: https://sc-private-miner-kgt3lbt42a-an.a.run.app
 example:
 
 ```
-gcloud run deploy server --source . --project sc-private-miner --region asia-northeast1
+gcloud run deploy sc-private-miner --source . --project sc-private-miner --region asia-northeast1
 ```

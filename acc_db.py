@@ -9,15 +9,16 @@ SETTINGS = {}
 PAGE_SIZE = 5
 
 
-def get_page(cursor, desc_key):
+def get_page(cursor, desc_key, is_small):
     global PAGE_SIZE, SETTINGS
     response = requests.get(
         f"{SETTINGS['DATA_SERVER_URL']}/urls",
         params={
             "cursor": cursor, 
             "page_size": PAGE_SIZE,
-            "desc_key": desc_key
-            },
+            "desc_key": desc_key,
+            "is_small": is_small,
+        },
     )
     return response.json().get("urls", []), response.json().get("next_cursor", None)
 
@@ -36,17 +37,18 @@ def translate_local_time(gmt_time: str):
 def print_url(da):
     print("*" * 20)
     print(f"url:          {da['url']}")
+    print(f"-- title:        {da.get('title', '-')}")
     print(f"-- artist_name:  {da['artist_name']}")
     print(f"-- follower_cnt: {da['follower_count']}")
     print(f"-- sender_name:  {da['sender_name']}")
     print(f"-- timestamp:    {translate_local_time(da['timestamp'])}")
 
 
-def get_db_list(desc_key):
+def get_db_list(desc_key, is_small):
     cur_cursor = None
 
     while True:
-        new_page, cursor = get_page(cur_cursor, desc_key)
+        new_page, cursor = get_page(cur_cursor, desc_key, is_small)
         if len(new_page) == 0:
             print("no page found")
             break
@@ -58,9 +60,12 @@ def get_db_list(desc_key):
         cur_cursor = cursor
 
 
-def get_random_private_url():
+def get_random_private_url(is_small):
     response = requests.get(
         f"{SETTINGS['DATA_SERVER_URL']}/random_private_url",
+        params={
+            "is_small": is_small,
+        },
     )
     return response.json()
 
@@ -80,8 +85,26 @@ if __name__ == "__main__":
         else:
             print("huh?")
             exit()
-        get_db_list(desc_key)
+        ans3 = input("artist size? (b)ig, (s)mall: ")
+        is_small = False
+        if ans3 == "b":
+            is_small = False
+        elif ans3 == "s":
+            is_small = True
+        else:
+            print("huh?")
+            exit()
+        get_db_list(desc_key, is_small)
     elif ans == "r":
-        print_url(get_random_private_url())
+        ans2 = input("artist size? (b)ig, (s)mall: ")
+        is_small = False
+        if ans2 == "b":
+            is_small = False
+        elif ans2 == "s":
+            is_small = True
+        else:
+            print("huh?")
+            exit()
+        print_url(get_random_private_url(is_small))
     else:
         print("huh?")

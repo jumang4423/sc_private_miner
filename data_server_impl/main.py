@@ -1,16 +1,18 @@
 import os
 import random
+import logging
+# log set everything
+logging.basicConfig(level=logging.INFO)
 from pydantic import BaseModel
 from datetime import datetime
 from flask import Flask, request, jsonify
 from firebase_admin import credentials, firestore, initialize_app
-
+from typing import Optional
 # Initialize Firestore DB
 CRED_PATH = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "./credentials.json")
 cred = credentials.Certificate(CRED_PATH)
 initialize_app(cred)
 db = firestore.client()
-
 app = Flask(__name__)
 
 
@@ -20,6 +22,7 @@ class PrivateURLDTO(BaseModel):
     sender_name: str
     follower_count: int
     artist_name: str
+    title: Optional[str] = None
 
 
 class PrivateURL(PrivateURLDTO):
@@ -29,12 +32,15 @@ class PrivateURL(PrivateURLDTO):
 # Firestore Service
 class FirestoreService:
     @staticmethod
-    def get_random_private_url():
+    def get_random_private_url(is_small: bool):
         """
         TODO: maybe this is very slow and inefficient
         """
         try:
-            urls_ref = db.collection("urls")
+            col_refa = "urls"
+            if is_small:
+                col_refa = "small_urls"
+            urls_ref = db.collection(col_refa)
             urls_stream = urls_ref.stream()
             total_docs_count = sum(1 for _ in urls_stream)
             if total_docs_count == 0:
@@ -52,15 +58,18 @@ class FirestoreService:
             return jsonify({"error": str(e)}), 500
 
     @staticmethod
-    def get_urls(page_size, cursor=None, desc_key=None):
+    def get_urls(page_size, cursor=None, desc_key=None, is_small=False):
+        col_ref = "urls"
+        if is_small:
+            col_ref = "small_urls"
         if not desc_key:
             desc_key = "timestamp"
-        urls_ref = db.collection("urls").order_by(
+        urls_ref = db.collection(col_ref).order_by(
             desc_key, direction=firestore.Query.DESCENDING
         )
         # Use cursor-based pagination
         if cursor:
-            cursor_doc = db.collection("urls").document(cursor).get()
+            cursor_doc = db.collection(col_ref).document(cursor).get()
             if cursor_doc.exists:
                 urls_ref = urls_ref.start_after(cursor_doc)
 
@@ -77,16 +86,20 @@ class FirestoreService:
         return urls, next_cursor
 
     @staticmethod
-    def add_url(url_data):
+    def add_url(url_data, is_small=False):
         url_data["timestamp"] = datetime.now()
         new_data = PrivateURL(**url_data)
-        db.collection("urls").add(new_data.dict())
+        collection_name = "urls"
+        if is_small:
+            collection_name = "small_urls"
+        db.collection(collection_name).add(new_data.dict())
 
 
 # Flask Routes
 @app.route("/random_private_url", methods=["GET"])
 def get_random_private_url():
-    return FirestoreService.get_random_private_url()
+    is_small = request.args.get("is_small", False) == "True"
+    return FirestoreService.get_random_private_url(is_small)
 
 
 @app.route("/urls", methods=["GET"])
@@ -95,8 +108,8 @@ def get_urls():
         page_size = int(request.args.get("page_size", 10))
         cursor = request.args.get("cursor", None)  # Get the cursor if provided
         desc_key = request.args.get("desc_key", None) # Get the desc_key if provided
-        urls, next_cursor = FirestoreService.get_urls(page_size, cursor, desc_key)
-
+        is_small = request.args.get("is_small", False) == "True" # Get the is_small if provided
+        urls, next_cursor = FirestoreService.get_urls(page_size, cursor, desc_key, is_small)
         response = {"urls": urls}
         if next_cursor:
             response["next_cursor"] = next_cursor
@@ -113,6 +126,15 @@ def add_url():
     try:
         data = request.json
         FirestoreService.add_url(data)
+        return {"message": "URL added successfully"}, 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@app.route("/small_url", methods=["POST"])
+def add_small_url():
+    try:
+        data = request.json
+        FirestoreService.add_url(data, is_small=True)
         return {"message": "URL added successfully"}, 201
     except Exception as e:
         return jsonify({"error": str(e)}), 400

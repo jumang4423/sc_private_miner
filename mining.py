@@ -82,6 +82,10 @@ async def is_private_producer(html_content: str) -> bool:
         return sharing == "private"
     return False
 
+async def get_track_title(html_content: str) -> str:
+    match = re.search(r'"title":"([^"]+)"', html_content)
+    if match:
+        return match.group(1)
 
 async def artist_follower_count(html_content: str) -> int:
     match = re.search(r'"followers_count":(\d+)', html_content)
@@ -113,30 +117,35 @@ async def filter_url(session, n_url):
             artist_follower_count_d > SETTINGS["PRIVATE_BIG_ARTIST_THRESHOLD"]
         )
         if is_private:
-            if is_artist_big:
-                artist_name = await get_artist_name(html_content)
-                return {
-                    "url": URLType.PRIVATE_BIG_ARTIST,
-                    "artist_name": artist_name,
-                    "follower_count": artist_follower_count_d,
-                }, False
-            return {"url": URLType.PRIVATE_SMALL_ARTIST}, False
+            title = await get_track_title(html_content)
+            artist_name = await get_artist_name(html_content)
+            return {
+                "url": URLType.PRIVATE_BIG_ARTIST if is_artist_big else URLType.PRIVATE_SMALL_ARTIST,
+                "artist_name": artist_name,
+                "follower_count": artist_follower_count_d,
+                "title": title
+            }, False
         if is_small_playcount:
             return {"url": URLType.PUBLIC_SMALL_PLAYCOUNT}, False
         return {"url": URLType.PUBLIC_BIG_PLAYCOUNT}, False
 
 
 # Asynchronous function to notify
-async def ntfy(session, private_url, follower_count, artist_name):
+async def ntfy(session, private_url, follower_count, artist_name, title, is_small):
     database_url = SETTINGS["DATA_SERVER_URL"]
     data = {
         "url": private_url,
         "sender_name": USERNAME,
         "follower_count": follower_count,
         "artist_name": artist_name,
+        "title": title
     }
     print(str(data))
-    await session.post(f"{database_url}/url", json=data)
+    url_prefix = "small_url" if is_small else "url"
+    try:
+        await session.post(f"{database_url}/{url_prefix}", json=data)
+    except Exception as e:
+        print(f"Error: {e}")
 
 
 async def main():
@@ -162,11 +171,20 @@ async def bounded_random_url(semaphore, session):
                 await save_url(
                     random_url, url_type
                 )  # Await the async save_url function
-            if url_type == URLType.PRIVATE_BIG_ARTIST:
+            if url_type == URLType.PRIVATE_BIG_ARTIST or url_type == URLType.PRIVATE_SMALL_ARTIST:
                 print(f"sending to server...")
+                is_small = url_type == URLType.PRIVATE_SMALL_ARTIST
                 follower_count = data_obj["follower_count"]
                 artist_name = data_obj["artist_name"]
-                await ntfy(session, random_url, follower_count, artist_name)
+                title = data_obj["title"]
+                await ntfy(
+                    session, 
+                    random_url, 
+                    follower_count, 
+                    artist_name,
+                    title,
+                    is_small
+                )
 
 
 if __name__ == "__main__":
