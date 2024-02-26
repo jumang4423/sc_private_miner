@@ -6,6 +6,7 @@ import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import { Box } from "@mui/material";
 import "./App.css";
 
 const API_URL = "https://sc-private-miner-kgt3lbt42a-an.a.run.app";
@@ -69,12 +70,14 @@ const DataAnalyzer = () => {
   return (
     <div>
       <AccordionDetails>
-        <DataGrid
-          rows={data.urls}
-          columns={columns}
-          pageSizeOptions={[PAGE_SIZE]}
-          loading={is_loading}
-        />
+        <Box>
+          <DataGrid
+            rows={data.urls}
+            columns={columns}
+            pageSizeOptions={[PAGE_SIZE]}
+            loading={is_loading}
+          />
+        </Box>
       </AccordionDetails>
       <AccordionActions>
         <button
@@ -133,13 +136,26 @@ function App() {
 
   return (
     <>
-      <div
-        className="App"
-        style={{
-          width: "960px",
-        }}
-      >
-        <h1>(^^♪ sc-private-miner</h1>
+      <div className="App" style={{}}>
+        <div
+          style={{
+            fontSize: "2rem",
+            marginBottom: "8px",
+          }}
+        >
+          (^^♪ sc-private-miner
+        </div>
+        <div style={{ fontSize: "1rem", marginBottom: "24px" }}>
+          * dont comment to private tracks
+          <br />* help us with mining from{" "}
+          <a
+            href="https://github.com/jumang4423/sc_private_miner"
+            target="_blank"
+            rel="noreferrer"
+          >
+            this repo
+          </a>
+        </div>
         <Accordion
           onChange={() => setIsUrlGeneratorOpen(!is_url_generator_open)}
         >
