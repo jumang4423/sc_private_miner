@@ -11,7 +11,7 @@ import { Box } from "@mui/material";
 import "./App.css";
 
 const API_URL = "https://sc-private-miner-kgt3lbt42a-an.a.run.app";
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 15;
 const columns: GridColDef[] = [
   {
     field: "id",
