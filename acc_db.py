@@ -1,5 +1,8 @@
 from lib.load_settings import load_settings, print_settings
+from datetime import datetime
 import requests
+import time
+from datetime import datetime, timezone, timedelta
 
 # vars
 SETTINGS = {}
@@ -15,13 +18,24 @@ def get_page(cursor):
     return response.json().get("urls", []), response.json().get("next_cursor", None)
 
 
+def translate_local_time(gmt_time: str):
+    dt_gmt = datetime.strptime(gmt_time, "%a, %d %b %Y %H:%M:%S %Z")
+    dt_utc = dt_gmt.replace(tzinfo=timezone.utc)
+    local_offset = timedelta(seconds=-time.timezone)
+    if time.daylight:
+        local_offset = timedelta(seconds=-time.altzone)
+    local_timezone = timezone(local_offset)
+    dt_local = dt_utc.astimezone(local_timezone)
+    return dt_local.strftime("%Y-%m-%d %H:%M:%S")
+
+
 def print_url(da):
     print("*" * 20)
     print(f"url:          {da['url']}")
     print(f"-- artist_name:  {da['artist_name']}")
     print(f"-- follower_cnt: {da['follower_count']}")
     print(f"-- sender_name:  {da['sender_name']}")
-    print(f"-- timestamp:    {da['timestamp']}")
+    print(f"-- timestamp:    {translate_local_time(da['timestamp'])}")
 
 
 def get_db_list():
