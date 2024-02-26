@@ -6,16 +6,17 @@ SETTINGS = {}
 PAGE_SIZE = 5
 
 
-def get_page(cur_page: int):
+def get_page(cursor):
     global PAGE_SIZE, SETTINGS
     response = requests.get(
         f"{SETTINGS['DATA_SERVER_URL']}/urls",
-        params={"page": cur_page, "page_size": PAGE_SIZE},
+        params={"cursor": cursor, "page_size": PAGE_SIZE},
     )
-    return response.json()["urls"]
+    return response.json().get("urls", []), response.json().get("next_cursor", None)
 
 
 def print_url(da):
+    print("*" * 20)
     print(f"url:          {da['url']}")
     print(f"-- artist_name:  {da['artist_name']}")
     print(f"-- follower_cnt: {da['follower_count']}")
@@ -24,10 +25,10 @@ def print_url(da):
 
 
 def get_db_list():
-    cur_page = 1
+    cur_cursor = None
 
     while True:
-        new_page = get_page(cur_page)
+        new_page, cursor = get_page(cur_cursor)
         if len(new_page) == 0:
             print("no page found")
             break
@@ -35,7 +36,8 @@ def get_db_list():
             print_url(d)
             print()
         input("enter to next page")
-        cur_page = cur_page + 1
+        print("-" * 80)
+        cur_cursor = cursor
 
 
 def get_random_private_url():
