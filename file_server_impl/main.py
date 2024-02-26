@@ -30,6 +30,9 @@ class PrivateURL(PrivateURLDTO):
 class FirestoreService:
     @staticmethod
     def get_random_private_url():
+        """
+        TODO: maybe this is very slow and inefficient
+        """
         try:
             urls_ref = db.collection("urls")
             urls_stream = urls_ref.stream()
