@@ -92,7 +92,9 @@ class FirestoreService:
         collection_name = "urls"
         if is_small:
             collection_name = "small_urls"
-        db.collection(collection_name).add(new_data.dict())
+        doc_ref = db.collection(collection_name).add(new_data.dict())
+
+        return doc_ref.id
 
 
 # Flask Routes
@@ -125,8 +127,8 @@ def get_urls():
 def add_url():
     try:
         data = request.json
-        FirestoreService.add_url(data, False)
-        return {"message": "URL added successfully"}, 201
+        new_doc_id = FirestoreService.add_url(data, False)
+        return {"message": f"doc id: {new_doc_id}"}, 201
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
@@ -134,8 +136,8 @@ def add_url():
 def add_small_url():
     try:
         data = request.json
-        FirestoreService.add_url(data, True)
-        return {"message": "URL added successfully"}, 201
+        new_doc_id = FirestoreService.add_url(data, True)
+        return {"message": f"doc id: {new_doc_id}"}, 201
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
