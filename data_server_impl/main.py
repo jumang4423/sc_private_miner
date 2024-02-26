@@ -52,9 +52,11 @@ class FirestoreService:
             return jsonify({"error": str(e)}), 500
 
     @staticmethod
-    def get_urls(page_size, cursor=None):
+    def get_urls(page_size, cursor=None, desc_key=None):
+        if not desc_key:
+            desc_key = "timestamp"
         urls_ref = db.collection("urls").order_by(
-            "timestamp", direction=firestore.Query.DESCENDING
+            desc_key, direction=firestore.Query.DESCENDING
         )
         # Use cursor-based pagination
         if cursor:
@@ -92,7 +94,8 @@ def get_urls():
     try:
         page_size = int(request.args.get("page_size", 10))
         cursor = request.args.get("cursor", None)  # Get the cursor if provided
-        urls, next_cursor = FirestoreService.get_urls(page_size, cursor)
+        desc_key = request.args.get("desc_key", None) # Get the desc_key if provided
+        urls, next_cursor = FirestoreService.get_urls(page_size, cursor, desc_key)
 
         response = {"urls": urls}
         if next_cursor:

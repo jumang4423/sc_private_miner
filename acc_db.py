@@ -9,11 +9,15 @@ SETTINGS = {}
 PAGE_SIZE = 5
 
 
-def get_page(cursor):
+def get_page(cursor, desc_key):
     global PAGE_SIZE, SETTINGS
     response = requests.get(
         f"{SETTINGS['DATA_SERVER_URL']}/urls",
-        params={"cursor": cursor, "page_size": PAGE_SIZE},
+        params={
+            "cursor": cursor, 
+            "page_size": PAGE_SIZE,
+            "desc_key": desc_key
+            },
     )
     return response.json().get("urls", []), response.json().get("next_cursor", None)
 
@@ -38,11 +42,11 @@ def print_url(da):
     print(f"-- timestamp:    {translate_local_time(da['timestamp'])}")
 
 
-def get_db_list():
+def get_db_list(desc_key):
     cur_cursor = None
 
     while True:
-        new_page, cursor = get_page(cur_cursor)
+        new_page, cursor = get_page(cur_cursor, desc_key)
         if len(new_page) == 0:
             print("no page found")
             break
@@ -67,7 +71,16 @@ if __name__ == "__main__":
 
     ans = input("(l)get_db_list, (r)get_random_private_url: ")
     if ans == "l":
-        get_db_list()
+        ans2 = input("sort by... (t)imestamp, (f)ollower_count: ")
+        desc_key = ""
+        if ans2 == "t":
+            desc_key = "timestamp"
+        elif ans2 == "f":
+            desc_key = "follower_count"
+        else:
+            print("huh?")
+            exit()
+        get_db_list(desc_key)
     elif ans == "r":
         print_url(get_random_private_url())
     else:
