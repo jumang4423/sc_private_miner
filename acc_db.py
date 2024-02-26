@@ -44,7 +44,7 @@ def get_random_private_url():
     response = requests.get(
         f"{SETTINGS['DATA_SERVER_URL']}/random_private_url",
     )
-    return response.json()["url"]
+    return response.json()
 
 
 if __name__ == "__main__":
@@ -55,6 +55,6 @@ if __name__ == "__main__":
     if ans == "l":
         get_db_list()
     elif ans == "r":
-        print(get_random_private_url())
+        print_url(get_random_private_url())
     else:
         print("huh?")
