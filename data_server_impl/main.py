@@ -86,7 +86,7 @@ class FirestoreService:
         return urls, next_cursor
 
     @staticmethod
-    def add_url(url_data, is_small=False):
+    def add_url(url_data, is_small):
         url_data["timestamp"] = datetime.now()
         new_data = PrivateURL(**url_data)
         collection_name = "urls"
@@ -98,7 +98,7 @@ class FirestoreService:
 # Flask Routes
 @app.route("/random_private_url", methods=["GET"])
 def get_random_private_url():
-    is_small = request.args.get("is_small", False) == "True"
+    is_small = request.args.get("is_small", 0) == "1"
     return FirestoreService.get_random_private_url(is_small)
 
 
@@ -108,7 +108,7 @@ def get_urls():
         page_size = int(request.args.get("page_size", 10))
         cursor = request.args.get("cursor", None)  # Get the cursor if provided
         desc_key = request.args.get("desc_key", None) # Get the desc_key if provided
-        is_small = request.args.get("is_small", False) == "True" # Get the is_small if provided
+        is_small = request.args.get("is_small", 0) == "1"
         urls, next_cursor = FirestoreService.get_urls(page_size, cursor, desc_key, is_small)
         response = {"urls": urls}
         if next_cursor:
@@ -125,7 +125,7 @@ def get_urls():
 def add_url():
     try:
         data = request.json
-        FirestoreService.add_url(data)
+        FirestoreService.add_url(data, False)
         return {"message": "URL added successfully"}, 201
     except Exception as e:
         return jsonify({"error": str(e)}), 400
@@ -134,7 +134,7 @@ def add_url():
 def add_small_url():
     try:
         data = request.json
-        FirestoreService.add_url(data, is_small=True)
+        FirestoreService.add_url(data, True)
         return {"message": "URL added successfully"}, 201
     except Exception as e:
         return jsonify({"error": str(e)}), 400

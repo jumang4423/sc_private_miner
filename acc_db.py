@@ -3,13 +3,14 @@ from datetime import datetime
 import requests
 import time
 from datetime import datetime, timezone, timedelta
+from typing import Optional
 
 # vars
 SETTINGS = {}
 PAGE_SIZE = 5
 
 
-def get_page(cursor, desc_key, is_small):
+def get_page(cursor: Optional[str], desc_key: str, is_small: int):
     global PAGE_SIZE, SETTINGS
     response = requests.get(
         f"{SETTINGS['DATA_SERVER_URL']}/urls",
@@ -60,7 +61,7 @@ def get_db_list(desc_key, is_small):
         cur_cursor = cursor
 
 
-def get_random_private_url(is_small):
+def get_random_private_url(is_small: int):
     response = requests.get(
         f"{SETTINGS['DATA_SERVER_URL']}/random_private_url",
         params={
@@ -86,22 +87,22 @@ if __name__ == "__main__":
             print("huh?")
             exit()
         ans3 = input("artist size? (b)ig, (s)mall: ")
-        is_small = False
+        is_small = 0
         if ans3 == "b":
-            is_small = False
+            is_small = 0
         elif ans3 == "s":
-            is_small = True
+            is_small = 1
         else:
             print("huh?")
             exit()
         get_db_list(desc_key, is_small)
     elif ans == "r":
         ans2 = input("artist size? (b)ig, (s)mall: ")
-        is_small = False
+        is_small = 0
         if ans2 == "b":
-            is_small = False
+            is_small = 0
         elif ans2 == "s":
-            is_small = True
+            is_small = 1
         else:
             print("huh?")
             exit()
