@@ -143,8 +143,7 @@ async def ntfy(session, private_url, follower_count, artist_name, title, is_smal
     print(str(data))
     url_prefix = "small_url" if is_small else "url"
     try:
-        response = await session.post(f"{database_url}/{url_prefix}", json=data)
-        print(f"response: {response.text}")
+        await session.post(f"{database_url}/{url_prefix}", json=data)
     except Exception as e:
         print(f"Error: {e}")
 
