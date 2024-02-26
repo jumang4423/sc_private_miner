@@ -4,6 +4,7 @@ import Accordion from "@mui/material/Accordion";
 import AccordionActions from "@mui/material/AccordionActions";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
+import CircularProgress from "@mui/material/CircularProgress";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { Box } from "@mui/material";
@@ -108,19 +109,28 @@ const DataAnalyzer = () => {
 };
 
 const URLGenerator = () => {
-  const [rnd_url, setRndUrl] = useState("click button to generate url");
+  const [rnd_url, setRndUrl] = useState("");
+  const [is_loading, setIsLoading] = useState(false);
   const genRndUrl = async (is_small: number) => {
+    setIsLoading(true);
     const res = await axios.get(
       `${API_URL}/random_private_url?is_small=${is_small}`
     );
     setRndUrl(res.data.url);
+    setIsLoading(false);
   };
   return (
     <div>
       <AccordionDetails>
-        <a href={rnd_url} target="_blank" rel="noreferrer">
-          {rnd_url}
-        </a>
+        {!is_loading &&
+          (rnd_url !== "" ? (
+            <a href={rnd_url} target="_blank" rel="noreferrer">
+              {rnd_url}
+            </a>
+          ) : (
+            <div>click the button to generate a random private url</div>
+          ))}
+        {is_loading && <CircularProgress />}
       </AccordionDetails>
       <AccordionActions>
         <button onClick={() => genRndUrl(0)}>gen big artist link</button>
