@@ -1,5 +1,7 @@
 # sc_private_miner
 
+also url: https://sc-private-miner.vercel.app/
+
 ![logs example](_img/ass.png)
 
 ## setup
