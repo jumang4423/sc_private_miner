@@ -164,7 +164,8 @@ function App() {
           >
             this repo
           </a>
-          * spread this link so that we can save soundcloud from hackers and SJW
+          <br />* spread this link so that we can save soundcloud from hackers
+          and SJW
         </div>
         <Accordion
           onChange={() => setIsUrlGeneratorOpen(!is_url_generator_open)}
