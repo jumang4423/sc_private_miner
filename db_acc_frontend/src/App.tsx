@@ -26,7 +26,6 @@ const columns: GridColDef[] = [
   { field: "follower_count", headerName: "Followers", width: 100 },
   { field: "artist_name", headerName: "Artist Name", width: 150 },
   { field: "title", headerName: "Title", width: 150 },
-  { field: "sender_name", headerName: "Sender Name", width: 100 },
   { field: "timestamp", headerName: "Timestamp", width: 200 },
 ];
 
@@ -165,6 +164,7 @@ function App() {
           >
             this repo
           </a>
+          * spread this link so that we can save soundcloud from hackers and SJW
         </div>
         <Accordion
           onChange={() => setIsUrlGeneratorOpen(!is_url_generator_open)}
