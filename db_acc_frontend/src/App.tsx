@@ -156,7 +156,7 @@ function App() {
         </div>
         <div style={{ fontSize: "1rem", marginBottom: "24px" }}>
           * dont comment to private tracks
-          <br />* help us with mining from{" "}
+          <br />* start mining from{" "}
           <a
             href="https://github.com/jumang4423/sc_private_miner"
             target="_blank"
@@ -164,8 +164,6 @@ function App() {
           >
             this repo
           </a>
-          <br />* spread this link so that we can save soundcloud from hackers
-          and SJW
         </div>
         <Accordion
           onChange={() => setIsUrlGeneratorOpen(!is_url_generator_open)}
