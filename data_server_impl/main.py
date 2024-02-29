@@ -100,8 +100,9 @@ class FirestoreService:
 # Flask Routes
 @app.route("/random_private_url", methods=["GET"])
 def get_random_private_url():
-    is_small = request.args.get("is_small", 0) == "1"
-    return FirestoreService.get_random_private_url(is_small)
+    return "still fixing, no ddos plz", 200
+    # is_small = request.args.get("is_small", 0) == "1"
+    # return FirestoreService.get_random_private_url(is_small)
 
 
 @app.route("/urls", methods=["GET"])

@@ -166,20 +166,20 @@ function App() {
           </a>
         </div>
         <Accordion
-          onChange={() => setIsUrlGeneratorOpen(!is_url_generator_open)}
-        >
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <h2>🌈 random private url generator</h2>
-          </AccordionSummary>
-          {is_url_generator_open && <URLGenerator />}
-        </Accordion>
-        <Accordion
           onChange={() => setIsDataAnalyzerOpen(!is_data_analyzer_open)}
         >
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <h2>📊 data analyzer </h2>
           </AccordionSummary>
           {is_data_analyzer_open && <DataAnalyzer />}
+        </Accordion>
+        <Accordion
+          onChange={() => setIsUrlGeneratorOpen(!is_url_generator_open)}
+        >
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <h2>🌈 random private url generator (dead, fixing rn)</h2>
+          </AccordionSummary>
+          {is_url_generator_open && <URLGenerator />}
         </Accordion>
       </div>
     </>

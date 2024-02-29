@@ -2,8 +2,6 @@
 
 also url: https://sc-private-miner.vercel.app/
 
-![logs example](_img/ass.png)
-
 ## setup
 
 ```bash
@@ -30,3 +28,11 @@ python3 mining.py
   "PUBLIC_BIG_PLAYCOUNT_URLS_FILENAME": "mining_public_big_playcount_urls.txt"
 }
 ```
+
+![](_img/ass.png)
+![](_img/100m.png)
+![](_img/cloud_run.png)
+![](_img/cost.png)
+![](_img/rand_gen.png)
+![](_img/store.png)
+![](_img/webapp.png)

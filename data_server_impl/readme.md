@@ -1,6 +1,6 @@
 sc_private_miner server impl
 
-URL: https://sc-private-miner-kgt3lbt42a-an.a.run.app
+URL: -
 
 # doc
 
