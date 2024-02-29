@@ -10,7 +10,7 @@ import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { Box } from "@mui/material";
 import "./App.css";
 
-const API_URL = "https://sc-private-miner-kgt3lbt42a-an.a.run.app";
+const API_URL = "-";
 const PAGE_SIZE = 15;
 const columns: GridColDef[] = [
   {
