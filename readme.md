@@ -2,7 +2,7 @@ SERVICE DEAD; SOUNDCLOUD PLZ FIX THIS PROBLEM
 
 # sc_private_miner
 
-also url: https://sc-private-miner.vercel.app/
+also url: -
 
 ## setup
 
